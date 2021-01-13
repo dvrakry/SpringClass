@@ -34,4 +34,9 @@ public class FilesDAOImp implements FilesDAO {
 	public int delete(Integer pno) {
 		return sql.delete(NS+"rm",pno);
 	}
+
+	@Override
+	public List<FilesVO> selectList() {
+		return sql.selectList(NS+"all");
+	}
 }

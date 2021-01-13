@@ -30,6 +30,7 @@ public class ProductController {
 	
 	@PostMapping("/remove")
 	public String remove(@RequestParam("pno")int pno, RedirectAttributes reAttr ) {
+		fp.deleteOldFiles(pno);//포린키가 pno를 잡고있기때문에 file부터 지워야됨, pno부터 지우면 안지워짐 포린키때문에
 		int isUp = psv.remove(pno);
 		String msg = isUp>0 ? "상품삭제 완료" : "상품삭제 오류";
 		reAttr.addFlashAttribute("result", msg);
@@ -37,8 +38,14 @@ public class ProductController {
 	}
 	
 	@PostMapping("/modify")
-	public String modify(ProductVO pvo, RedirectAttributes reAttr) {
-		int isUp = psv.modify(pvo);
+	public String modify(ProductVO pvo, RedirectAttributes reAttr,
+			@RequestParam(name="files", required = false)MultipartFile[] files) {
+		int isUp = psv.modify(pvo);//여기는 파일말고 상품에대한 정보만 수정, 파일의 정보는 fvo에 있음
+		if(isUp>0 && files[0].getSize()>0) {//상품정보가 수정안되도 같은값으로 db가 올라가서 isUP = 1 이됨
+			fp.deleteOldFiles(pvo.getPno());//123:예전파일pno
+			fp.uploadFiles(files, pvo.getPno());//456:새파일pno
+			
+		}
 		String msg = isUp>0 ? "상품수정 완료" : "상품수정 오류";
 		reAttr.addFlashAttribute("result", msg);
 		return "redirect:/product/info?pno="+pvo.getPno();

@@ -76,6 +76,11 @@ public class FileProcessor {
 		}//여기가 for 문 끝
 		
 	}
+	
+	public void deleteOldFiles(int pno) {
+			fsv.remove(pno);
+		
+		}
 
 	private boolean isImageType(File storeFile) {
 		try {
@@ -86,4 +91,6 @@ public class FileProcessor {
 		}
 		return false;
 	}
+
+	
 }

@@ -10,6 +10,9 @@
 	<select id="list" parameterType="java.lang.Integer" resultType="fvo">
 		select * from tbl_files where pno=#{pno}
 	</select>
+	<select id="all" resultType="fvo">
+		select * from tbl_files
+	</select>
 	<delete id="rm" parameterType="java.lang.Integer">
 		delete from tbl_files where pno=#{pno}
 	</delete>
