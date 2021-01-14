@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MemberMapper">
+<sql id="base">
+ from tbl_member where email=#{email}
+</sql>
+	<insert id="join" parameterType="mvo">
+		insert into tbl_member
+		values (#{email}, #{pwd}, #{nickname}, sysdate)
+	</insert>
+	<select id="login" parameterType="mvo" resultType="mvo">
+		select * <include refid="base"/> and pwd=#{pwd}
+	</select>
+	<select id="check" parameterType="java.lang.String" resultType="java.lang.Integer">
+		select count(email) <include refid="base"/>
+	</select>
+	<select id="info" parameterType="java.lang.String" resultType="mvo">
+		select * <include refid="base" />
+	</select>
+	<select id="list" resultType="mvo" parameterType="pg">
+		<![CDATA[
+			select email, pwd, nickname, regdate 
+			from (select /*+INDEX_DESC(tbl_member pk_member)*/ rownum as rn, email, pwd, nickname, regdate
+			from tbl_member where rownum <= #{pageIdx} * #{qty})
+			where rn > (#{pageIdx}-1) * #{qty}
+		]]>
+	</select>
+	<select id="tt" resultType="java.lang.Integer">
+		select count(email) from tbl_member
+	</select>
+	<update id="mod" parameterType="mvo">
+		update tbl_member set nickname=#{nickname} where email=#{email}
+	</update>
+	<delete id="resign" parameterType="java.lang.String">
+		delete <include refid="base" />
+	</delete>
+</mapper>
