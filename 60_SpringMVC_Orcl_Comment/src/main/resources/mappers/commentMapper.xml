@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CommentMapper">
+	<insert id="add" parameterType="cvo">
+		insert into tbl_comment(cno, pno, content, writer)
+		values(seq_comment_cno.nextval, #{pno}, #{content}, #{writer})
+	</insert>
+	<select id="list" resultType="cvo" parameterType="pg">
+		select * from tbl_comment where pno=#{pno} 
+	</select>
+	<select id="total" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+		select count(cno) from tbl_comment pno=#{pno}
+	</select>
+	<update id="mod" parameterType="cvo">
+		update tbl_comment set content=#{content}, moddate=sysdate
+		where cno=#{cno}
+	</update>
+	<delete id="rm" parameterType="java.lang.Integer">
+		delete from tbl_comment where cno=#{cno}
+	</delete>
+</mapper>
