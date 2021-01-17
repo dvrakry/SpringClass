@@ -64,15 +64,35 @@
 </div>
 </form>
 </c:if>
+<!-- -----------리스트------------- -->
+
+
 
 <script>
+function print_list(result) {
+	
+}
+
+function list_comment(pno) {
+	$.getJSON("/comment/pno/"+pno+".json", function(result) { /* 데이터를 받는 제이슨 , result에 리스트 객체가 날라옴*/
+			print_list(result);
+			
+		}
+	).fail(function(jqxhr, textStatus, error) {
+		   alert("댓글리스트 로딩 오류");
+	       var err = textStatus + ", " + error;
+	       console.log( "Request Failed: " + err );
+	   });
+}
+
+
 function write_comment() {
 	let content = $("#cmtInput").val();
 	if(content == null || content ==''){
 		alert("댓글 내용을 입력해주세요!");
 		return false;
 	}else{
-		let cmtData = {pno: pno, writer: writer, content : content};
+		let cmtData = {pno: pno, writer: ses_email, content : content};
 		$.ajax({
 			url: "/comment/write",
 			type: "post",
@@ -80,15 +100,15 @@ function write_comment() {
 			contentType: "application/json; charset=utf-8" //이렇게 보내야 일반String이 아닌 제이슨으로 날라감
 			
 		}).done(function(result) {
-			
+			alert("댓글 등록 완료!");
+			list_comment(pno);
 		}).fail(function() {
-			
+			alert("댓글 등록 오류!");
 		}).always(function() {
-			
+			$("#cmtInput").val("");
 		});
 	}
 }
-
 </script>
 
 <script>
@@ -101,10 +121,11 @@ $(function() {
 	writer = '<c:out value="${pvo.writer}"/>';
 	ses_email = '<c:out value="${ses.email}"/>';
 	
+	list_comment(pno);
+	
 	$(document).on("click", "#cmtSubmit", function(e) {
 		e.preventDefault();
 		write_comment(); //펑션(다른jsp파일에 함수만 따로 저장한걸 불러오는거임)
-		
 	});
 	
 	
@@ -114,6 +135,7 @@ $(function() {
 			$("#rmForm").submit(); // rmBtn버튼 누르면 아이디 rmForm 찾아서 히든으로 pno 값을 보냄
 		});
 	});
+});
 </script>
 <jsp:include page="../common/footer.jsp"></jsp:include>
 

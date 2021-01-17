@@ -22,7 +22,7 @@ public class CommentDAOImp implements CommentDAO{
 	
 	@Override
 	public int insert(CommentVO cvo) {
-		return sql.insert(NS+"join", cvo);
+		return sql.insert(NS+"add", cvo);
 	}
 
 	@Override

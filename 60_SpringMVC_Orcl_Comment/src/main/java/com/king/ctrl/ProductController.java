@@ -63,6 +63,7 @@ public class ProductController {
 	
 	@GetMapping("/list")
 	public void list(Model model, @ModelAttribute("pg")Paging pg) {//java->view:Model <-> view -> java : @ModelAttribute ... 여기서는 Paging 객체 쓰려고 @M/A한듯
+		logger.info(">>> /product/List -GET");
 		model.addAttribute("list", psv.getList(pg));
 		int totalCount = psv.getTotal(pg);
 		model.addAttribute("pgbld", new PagingBuilder(totalCount,pg));

@@ -1,14 +1,18 @@
 package com.king.ctrl;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -35,16 +39,17 @@ public class CommentController {
 		return "";
 	}
 	
-	@GetMapping(value = "/pno/1/1/admin") // /comment/pno/1 : pno 1 의 코멘트리스트를 가져옴 value = "/pno/1/1/admin" == /comment/list?pno=1&pageIdx=1&keyword=admin
-	public String list(int pno) {
-		return "";
+	@GetMapping(value = "/pno/{pno}", produces = {MediaType.APPLICATION_ATOM_XML_VALUE, //.getJSON 으로 보내기위해 타입지정하는것 xml로하고 UTF-8
+			MediaType.APPLICATION_JSON_UTF8_VALUE}) // /comment/pno/1 : pno 1 의 코멘트리스트를 가져옴 value = "/pno/1/1/admin" == /comment/list?pno=1&pageIdx=1&keyword=admin
+	public ResponseEntity<List<CommentVO>> list(@PathVariable("pno") int pno) { //(@PathVariable("pno") 이건 바로위 {pno}이거임
+		List<CommentVO> list = csv.getList(pno);	
+		return new ResponseEntity<List<CommentVO>>(list,HttpStatus.OK);
 	}
 	
 	@PostMapping(value = "/write", consumes = "application/json", produces = "application/text; charset=utf-8")
-	public String write(@RequestBody CommentVO cvo) { //@RequestBody CommentVO cvo => html 에서 날라온 json 데이터를 java 객체로 만들어줌 <-> responseBOdy 는 자바에서 html로 html형식의 데이터로 날려주는거
+	public ResponseEntity<String> write(@RequestBody CommentVO cvo) { //@RequestBody CommentVO cvo => html 에서 날라온 json 데이터를 java 객체로 만들어줌 <-> responseBOdy 는 자바에서 html로 html형식의 데이터로 날려주는거
 		int isUp = csv.write(cvo); // 이 cvo가 html에서 날라온 데이터를 @RequestBody CommentVO cvo 이걸통해서 java객체로 만든것
-		
-		return "";
+		return isUp>0 ? new ResponseEntity<String>("1", HttpStatus.OK) : new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 	
 	
