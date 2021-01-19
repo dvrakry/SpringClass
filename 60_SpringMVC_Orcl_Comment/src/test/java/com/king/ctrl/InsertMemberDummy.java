@@ -24,7 +24,7 @@ public class InsertMemberDummy {
 	private MemberDAO mdao;//MemberImp부른거와 동일
 	
 	@Test
-	public void makeDummyOfMember() throws Exception{
+/*	public void makeDummyOfMember() throws Exception{
 		for (int i = 0; i < 100; i++) {
 			MemberVO mvo = new MemberVO();
 			mvo.setEmail("tester"+i+"@tester.com");
@@ -32,9 +32,9 @@ public class InsertMemberDummy {
 			mvo.setNickname("tester"+i);
 			mdao.insert(mvo);
 		}
-	}
+	}*/
 
-	/*public void getInfoOfMember() throws Exception{
+	public void getInfoOfMember() throws Exception{
 		ArrayList<MemberVO> list = new ArrayList<MemberVO>();
 		for (int i = 0; i < 10; i++) {
 			MemberVO mvo = mdao.selectInfo("tester"+i+"@tester.com");
@@ -43,5 +43,5 @@ public class InsertMemberDummy {
 		for (MemberVO mvo : list) {
 			logger.info(mvo.getEmail() + "|" + mvo.getNickname() + "|" + mvo.getPwd() + "|" + mvo.getRegdate());
 		}
-	}*/
+	}
 }

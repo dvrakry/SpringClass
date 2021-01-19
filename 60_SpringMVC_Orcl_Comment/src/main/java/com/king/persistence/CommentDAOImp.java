@@ -1,6 +1,8 @@
 package com.king.persistence;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -26,8 +28,11 @@ public class CommentDAOImp implements CommentDAO{
 	}
 
 	@Override
-	public List<CommentVO> selectList(Integer pno) {
-		return sql.selectList(NS+"list" , pno);
+	public List<CommentVO> selectList(Integer pno, Paging pg) {
+		Map<String, Object> map = new HashMap<>();
+		map.put("pno", pno);
+		map.put("pg", pg);
+		return sql.selectList(NS+"list" , map);
 	}
 
 	@Override

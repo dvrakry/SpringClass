@@ -2,7 +2,11 @@
 	pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <jsp:include page="../common/header.jsp"></jsp:include>
-
+<style>
+ .card span{
+ 	margin-right: 50px;
+ }
+</style>
 <jsp:include page="../common/nav.jsp"></jsp:include>
 
 <div class="col-sm-12">
@@ -64,69 +68,27 @@
 </div>
 </form>
 </c:if>
+<div id="accordion"></div>
+
+<ul class="pagination"></ul> <!-- 댓글 페이지네이션 -->
+
 <!-- -----------리스트------------- -->
 
 
-
-<script>
-function print_list(result) {
-	
-}
-
-function list_comment(pno) {
-	$.getJSON("/comment/pno/"+pno+".json", function(result) { /* 데이터를 받는 제이슨 , result에 리스트 객체가 날라옴*/
-			print_list(result);
-			
-		}
-	).fail(function(jqxhr, textStatus, error) {
-		   alert("댓글리스트 로딩 오류");
-	       var err = textStatus + ", " + error;
-	       console.log( "Request Failed: " + err );
-	   });
-}
-
-
-function write_comment() {
-	let content = $("#cmtInput").val();
-	if(content == null || content ==''){
-		alert("댓글 내용을 입력해주세요!");
-		return false;
-	}else{
-		let cmtData = {pno: pno, writer: ses_email, content : content};
-		$.ajax({
-			url: "/comment/write",
-			type: "post",
-			data: JSON.stringify(cmtData),
-			contentType: "application/json; charset=utf-8" //이렇게 보내야 일반String이 아닌 제이슨으로 날라감
-			
-		}).done(function(result) {
-			alert("댓글 등록 완료!");
-			list_comment(pno);
-		}).fail(function() {
-			alert("댓글 등록 오류!");
-		}).always(function() {
-			$("#cmtInput").val("");
-		});
-	}
-}
-</script>
-
-<script>
+<script>//여기가 스크립트 시작! info.jsp 읽으면 여기부터 읽음
 var pno;
 var writer;
 var ses_email;
+var total;
 
 $(function() {
 	pno = '<c:out value="${pvo.pno}"/>';
 	writer = '<c:out value="${pvo.writer}"/>';
 	ses_email = '<c:out value="${ses.email}"/>';
 	
-	list_comment(pno);
+	list_comment(pno,1); //189번째 줄 return으로 받아옴 total을, 이 함수에서 토탈을 받아옴
 	
-	$(document).on("click", "#cmtSubmit", function(e) {
-		e.preventDefault();
-		write_comment(); //펑션(다른jsp파일에 함수만 따로 저장한걸 불러오는거임)
-	});
+	
 	
 	
 
@@ -135,10 +97,163 @@ $(function() {
 			$("#rmForm").submit(); // rmBtn버튼 누르면 아이디 rmForm 찾아서 히든으로 pno 값을 보냄
 		});
 	});
+		
+		
+		
 });
 </script>
+<script src="/resources/js/comment.js"></script> <!-- 함수 선언부는 어디있든 상관없음 버튼함수위치가 아래에있어야 해서 보통 아래에 위치함 -->
 <jsp:include page="../common/footer.jsp"></jsp:include>
 
 
 
-
+<!-- -----------------------------
+선생님꺼
+$(document).on("click", "#cmtSubmit", function(e) {
+      e.preventDefault();
+      write_comment(total);
+   });
+$(document).on("click", ".cmtMod", function(){
+      let div = $(this).closest("div");
+      let cmtVal = div.find("textarea").val();
+      let cnoVal = div.data("cno");
+      let curr_page = $(".pagination li.active a").attr("href");
+      let info = {cno: cnoVal, pno: pno, content: cmtVal, pgIdx: curr_page};
+      modify_comment(info);
+   });
+   $(document).on("click", ".cmtRm", function(){
+      let div = $(this).closest("div");
+      let cnoVal = div.data("cno");
+      let curr_page = $(".pagination li.active a").attr("href");
+      let info = {cno: cnoVal, pno: pno, pgIdx: curr_page};
+      remove_comment(info);
+   });
+   $(document).on("click", ".pagination li a", function(e){
+      e.preventDefault();
+      list_comment(pno, $(this).attr("href"));
+   });
+function remove_comment(info) {
+   $.ajax({
+      url: "/comment/"+info.cno,
+      type: "delete"
+   }).done(function(result) {
+      alert("댓글 삭제 성공~");   
+   }).fail(function() {
+      alert("댓글 삭제 오류!");
+   }).always(function() {
+      list_comment(info.pno, info.pgIdx);
+   });
+}
+function modify_comment(info){
+   $.ajax({
+      url: "/comment/"+info.cno,
+      type: "put",
+      data: JSON.stringify(info),
+      contentType: "application/json; charset=utf-8"      
+   }).done(function(result) {
+      alert("댓글 수정 완료~");
+   }).fail(function() {
+      alert("댓글 수정 오류!");
+   }).always(function() {
+      list_comment(info.pno, info.pgIdx);
+   });   
+}
+function print_pagination(total, pgIdx){ // total: pno의 전체 댓글 갯수
+   let pgn = '';
+   let lastPage = Math.ceil(pgIdx/10.0)*10;
+   let firstPage = lastPage-9;
+   let prev = firstPage != 1;
+   let next = false;
+   
+   if(lastPage*10 >= total){
+      lastPage = Math.ceil(total/10.0);
+   }else{
+      next = true;
+   }
+   
+   if(prev){
+      pgn += '<li class="page-item"><a class="page-link" href="'+(firstPage-1)+'">';
+      pgn += '<i class="fa fa-angle-double-left"></i></a></li>';
+   }
+   
+   for (var i = firstPage; i <= lastPage; i++) {
+      let isActive = pgIdx == i ? "active": "";
+      pgn += '<li class="page-item ' + isActive + '">';
+      pgn += '<a class="page-link" href="' + i + '">' + i + '</a></li>';
+   }
+   
+   if(next){
+      pgn += '<li class="page-item"><a class="page-link" href="'+(lastPage+1)+'">';
+      pgn += '<i class="fa fa-angle-double-right"></i></a></li>';
+   }
+   $(".pagination").html(pgn).trigger("create");
+}
+function print_list(result, pgIdx) { // result == total, clist
+   let clist = result.clist;
+   let total = result.total;
+   console.log(clist);
+   console.log(total);
+   
+   if(clist.length == 0)
+      return;
+   
+   let listZone = $("#accordion");
+   listZone.empty();
+   for (var i = 0; i < clist.length; i++) {
+      let card = '<div class="card">';
+      card += '<div class="card-header">';
+      card += '<span>'+clist[i].writer+'</span>';
+      card += '<span>'+clist[i].content+'</span>';
+      card += '<span>'+clist[i].moddate+'</span>';
+      if(ses_email == clist[i].writer) {
+         card += '<a class="card-link" data-toggle="collapse" href="#cmt'+clist[i].cno+'">';
+         card += '<i class="fa fa-cog"></i></a>';
+         card += '</div><div id="cmt'+clist[i].cno+'" class="collapse" data-parent="#accordion">';
+         card += '<div class="card-body"><div data-cno="'+clist[i].cno+'">';
+         card += '<button type="button" class="btn btn-sm btn-warning cmtMod"><i class="fa fa-refresh"></i></button>';
+         card += '<button type="button" class="btn btn-sm btn-danger cmtRm"><i class="fa fa-close"></i></button>';   
+         card += '<textarea rows="3" class="form-control" required>'+clist[i].content+'</textarea></div></div>';
+      }
+      card += '</div></div>';
+      listZone.append(card);      
+   }
+   print_pagination(total, pgIdx);
+}
+function list_comment(pno, pageIdx) {
+   let pgIdx = pageIdx > 1 ? pageIdx : 1;   
+   $.getJSON("/comment/pno/"+pno+"/"+pgIdx+".json",
+         function(result) { // result: CommentDTO
+            console.log(result);
+            total = result.total; // 전역변수로 저장
+            print_list(result, pgIdx);
+         }
+   ).fail(function(jqxhr, textStatus, error) {
+      alert("댓글 리스트 로딩 오류!");
+       var err = textStatus + ", " + error;
+       console.log( "Request Failed: " + err );
+   });
+}
+function write_comment(total) {
+   let content = $("#cmtInput").val();
+   let lastPageIdx = Math.ceil(total/10.0);
+   if(content == null || content ==''){
+      alert("댓글 내용을 입력해주세요!");
+      return false;
+   }else{
+      let cmtData = {pno: pno, writer: ses_email, content: content};
+      $.ajax({
+         url: "/comment/write",
+         type: "post",
+         data: JSON.stringify(cmtData),
+         contentType: "application/json; charset=utf-8"
+      }).done(function(result) {
+         alert("댓글 등록 완료~");
+         list_comment(pno,lastPageIdx);
+      }).fail(function() {
+         alert("댓글 등록 오류!");
+      }).always(function() {
+         $("#cmtInput").val("");
+      });
+   }
+}
+    -->
