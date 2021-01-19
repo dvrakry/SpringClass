@@ -1,0 +1,90 @@
+-------10_Spring.....Member Added --------
+#> sqlplus system/oracle
+sql> conn system/oracle
+
+create user springuser identified  by oracle;
+
+create table tbl_member (
+email varchar2(100),
+pwd varchar2(1000) not null,
+nickname varchar2(100) not null,
+regdate date default sysdate
+);
+alter table tbl_member add constraint pk_member
+primary key(email);
+
+
+-------20_SpringMVC_Orcl_Product Added --------
+create table tbl_product (
+pno number(10),
+title varchar2(200) not null,
+content varchar2(4000) not null,
+writer varchar2(50) not null,
+price number(7,2) default 0.0,
+regdate date default sysdate,
+moddate date default sysdate,
+readcount number(10) default 0,
+constraint pk_product primary key(pno)
+);
+
+create sequence seq_product_pno
+start with 1
+increment by 1
+nocycle nocache;
+
+예) insert into tbl_product (pno, title, content, writer)
+values (seq_product_pno.nextval, #{title}, #{content}, #{writer})
+
+
+-------30_SpringMVC_Orcl_File Added --------
+create table tbl_files(
+uuid varchar2(100),
+savedir varchar2(100) not null,
+fname varchar2(500) not null,
+ftype number(1) default 0,
+pno number(10),
+constraint pk_files primary key(uuid)
+);
+
+alter table tbl_files add constraint fk_files_pno
+foreign key (pno) references tbl_product (pno);
+
+
+-------60_SpringMVC_Orcl_Comment Added --------
+create table tbl_comment(
+cno number(10),
+pno number(10) not null,
+content varchar2(1000) not null,
+writer varchar2(100) not null,
+regdate date default sysdata,
+moddate date default sysdata,
+constraint pk_comment primary key(cno)
+);
+
+alter table tbl_comment
+add constraint fk_comment_pno
+foreign key(pno) references tbl_product(pno);
+
+alter table tbl_comment
+add constraint fk_comment_writer
+foreign key(writer) references tbl_member(email);
+
+create sequence seq_comment_cno
+start with 1
+increment by 1
+nocycle nocache;
+
+-------70_SpringMVC_Orcl_AOP Added --------
+
+alter table tbl_product
+add cmtqty number(10,0) default 0;
+
+
+UPDATE TBL_PRODUCT 
+SET CMTQTY = 
+(SELECT COUNT(cno) FROM TBL_COMMENT
+WHERE tbl_comment.PNO = tbl_product.PNO);
+
+
+
+
