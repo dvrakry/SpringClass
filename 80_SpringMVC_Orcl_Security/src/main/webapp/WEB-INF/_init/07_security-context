@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
+                                 http://www.springframework.org/schema/beans/spring-beans.xsd
+                                 http://www.springframework.org/schema/security
+                                 http://www.springframework.org/schema/security/spring-security.xsd">
+
+<beans:bean id="bcryptPwdEncoder" 
+class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+</beans:beans>
+
+-------80_SpringMVC_Orcl_Security Added --------
+1.sql문 추가 : 00_sql 참고
+
+2.web.xml
+   <filter>
+      <filter-name>springSecurityFilterChain</filter-name>
+      <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+   </filter>
+   <filter-mapping>
+   	<filter-name>springSecurityFilterChain</filter-name>
+   	<url-pattern>/*</url-pattern>
+   </filter-mapping>
+
+   3.security-context
+   <beans:beans xmlns:security="http://www.springframework.org/schema/security"
+			 xmlns:context="http://www.springframework.org/schema/context"	
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
+                                 http://www.springframework.org/schema/beans/spring-beans.xsd
+                                 http://www.springframework.org/schema/security
+                                 http://www.springframework.org/schema/security/spring-security-4.2.xsd
+                                 http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+                                 
+   4.<beans:bean id="bcryptPwdEncoder" 
+class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+
+<context:component-scan base-package="com.king"></context:component-scan>
+<security:http auto-config="true" use-expressions="true">
+	<security:session-management>
+		<security:concurrency-control max-sessions="1" expired-url="/"/> <!-- 중복로그인 방지 -->
+	</security:session-management>
+	<security:form-login username-parameter="email" password-parameter="pwd"
+	login-processing-url="/member/login" login-page="/member/login" default-target-url="/"/> <!-- 로그인할때 쓰는 폼태그 네임값이 파라미터임 -->
+	
+</security:http>
+
+5.  servlet-context.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/security
+        http://www.springframework.org/schema/security/spring-security-4.2.xsd">
+        
+    <security:global-method-security pre-post-annotations="enabled"
+	secured-annotations="enabled"/>
+	
+6. MemberController 변경 > @PostMapping("/login") 변경
+@PostMapping("/login")
+	public String login(RedirectAttributes reAttr, HttpServletRequest req) {
+		
+		return "redirect:/member/login";
+	}
+	
+7.public class MemberVO implements UserDetails { //이런식으로 변경 참조\
+
+8.security-context.xml
+ 
+<security:authentication-manager> <!-- login-processing-url="/member/login" 이게돌고나서 이게돔 -->
+	<security:authentication-provider user-service-ref="authMemberDetailsService"> <!-- 실제인증을 진행할 서비스 객체 -->
+		<security:password-encoder ref="bcryptPwdEncoder"/>
+	</security:authentication-provider>
+</security:authentication-manager>
+<beans:bean id="authMemberDetailsService" class="com.king.service.AuthMemberDetailsService"/>
+
+9.
+@Inject
+	private MemberDAO mdao;
+	
+	@Override
+	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException { //이걸부르면 db에서 로그인한 아이디를 가져와야됨
+		MemberVO mvo = mdao.selectInfo(email);
+		if(mvo == null) {
+			throw new UsernameNotFoundException(email);
+		}
+		return mvo;
+	}
+	
+10.
+
+
+
+
+
+
+
+
+
+
+
+
