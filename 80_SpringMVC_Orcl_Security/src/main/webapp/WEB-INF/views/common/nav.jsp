@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 <style>
 	ul.nav{
 		margin-bottom: 50px;
@@ -13,8 +14,7 @@
 			<a href="/" class="text-dark text-decoration-non"> Spring
 				FrameWork MVC Project </a>
 		</h2>
-<c:choose>
-	<c:when test="${ses != null }">
+<sec:authorize access="isAuthenticated()"> <!-- 세션 로그인 성공한 사람만 isAuthenticated() 여기서 true false 값을 리턴함 /인증 이프문느낌-->
 		<ul class="nav justify-content-center">
 		
 			<li class="nav-item">
@@ -22,21 +22,34 @@
 			</li>		
 				
 			<li class="nav-item">
-				<c:choose>
-					<c:when test="${ses.email eq 'adm@admin.com' }">
-						<a class="nav-link" href="/member/list">${ses.nickname }(${ses.email })</a>
-					</c:when>
-					<c:otherwise>
-						<a class="nav-link" href="/member/modify?em=${ses.email }">${ses.nickname }(${ses.email })</a>
-					</c:otherwise>
-				</c:choose>	
+				<sec:authentication property="principal.auth" var="auth"/> <!-- 벨류값을 불러오는 느낌/ principal.auth 여기서 principal은 현재 접속자 유저의 VO객체 -->
+				<c:if test="${auth eq 'ADM' }">
+						<a class="nav-link" href="/member/list"><sec:authentication property="principal.nickname"/>
+						 (<sec:authentication property="principal.email"/>)</a>
+				</c:if>
+				<c:if test="${auth eq 'MEM' }">
+						<a class="nav-link" href='/member/modify?em=<sec:authentication property="principal.email"/>'>
+						<sec:authentication property="principal.nickname"/>
+						 (<sec:authentication property="principal.email"/>)</a>
+				</c:if>
 			</li>
 			<li class="nav-item">
-				<a class="nav-link" href="/member/logout">로그아웃</a>
+				<a class="nav-link" href='<c:url value="/member/logout"/>' id="logout">로그아웃</a>
 			</li>
 		</ul>
-	</c:when>
-	<c:otherwise>
+		<form action='<c:url value="/member/logout"/>' id="logoutForm" method="post">
+			<input type="hidden" name="${_csrf.parameterName }" value="${_csrf.token }"> <!-- 포스트로 보내서 시큐리티가 작동하게함 -->
+		</form>
+		<script>
+			$(function() {
+				$("#logout").on("click", function(e) {
+					e.preventDefault();//a링크니깐 이동안하게 막기
+					$("#logoutForm").submit();
+				});
+			});
+		</script>
+</sec:authorize>
+<sec:authorize access="isAnonymous()"> <!-- 세션없는 아무나 -->
 		<ul class="nav justify-content-center">
 			
 			<li class="nav-item">
@@ -50,5 +63,4 @@
 				<a class="nav-link" href="/member/login">로그인</a>
 			</li>
 		</ul>
-	</c:otherwise>
-</c:choose>
+</sec:authorize>	

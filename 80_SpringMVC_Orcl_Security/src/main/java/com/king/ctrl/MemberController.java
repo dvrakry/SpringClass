@@ -8,6 +8,8 @@ import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -45,6 +47,7 @@ public class MemberController {
 	 * msv.resign(email); if(isRm > 0 ) ses.invalidate(); return "redirect:/"; }
 	 */
 	
+	@PreAuthorize("isAuthenticated()")
 	@PostMapping("/resign")// Admin 에서 회원탈퇴
 	public String resign(@RequestParam("email")String email, @RequestParam("sign")String sign, HttpSession ses , RedirectAttributes reAttr, Paging pg) {
 		int isRm = msv.resign(email);
@@ -63,7 +66,8 @@ public class MemberController {
 		}
 	}
 	
-	
+	/* @Secured("ADM") */
+	@PreAuthorize("hasRole('ADM')") 
 	@GetMapping("/list")
 	public void list(Model model, @ModelAttribute("pg")Paging pg) {
 		List<MemberVO> list = msv.getList(pg);
@@ -72,6 +76,7 @@ public class MemberController {
 		model.addAttribute("pgbld",	new PagingBuilder(totalCount, pg));
 	}
 	
+	@PreAuthorize("isAuthenticated()")
 	@PostMapping("/modify")
 	public String modify(MemberVO mvo, HttpSession ses, RedirectAttributes reAttr, @RequestParam("sese")String sese,
 			Paging pg) {
@@ -86,28 +91,34 @@ public class MemberController {
 		+ "&range="+pg.getRange() +"&keyword="+pg.getKeyword();
 	}
 	
+	@PreAuthorize("isAuthenticated()")
 	@GetMapping("/modify")
 	public String modify(@RequestParam("em")String email, Model model) {
 		model.addAttribute("mvo", msv.getMember(email));
 		return "/member/modify";
 	}
 	
-	@GetMapping("/logout")
-	public String logout(HttpSession ses, RedirectAttributes reAttr) {
-		logger.info(">>> /memeber/logout -GET");
-		ses.invalidate();
-		reAttr.addFlashAttribute("result", "로그아웃 완료");
-		return "redirect:/";
-	}
+	/* 시큐리티에서 로그아웃을 처리해야됨(여긴 내가만든 세션이기때문)
+	 * @GetMapping("/logout") public String logout(HttpSession ses,
+	 * RedirectAttributes reAttr) { logger.info(">>> /memeber/logout -GET");
+	 * ses.invalidate(); reAttr.addFlashAttribute("result", "로그아웃 완료"); return
+	 * "redirect:/"; }
+	 */
+	
+	
 	
 	@GetMapping("/login")
 	public void login() {
 		logger.info(">>> /memeber/login -GET");
 	}
 	
-	@PostMapping("/login") //AuthMemberDetailsService  끝나고 일로옴
+	@PostMapping("/login") //AuthMemberDetailsService/  끝나고 일로옴
 	public String login(RedirectAttributes reAttr, HttpServletRequest req) { //authMemberDetailService 끝내고 일로옴
-		
+		reAttr.addFlashAttribute("email", req.getAttribute("email"));
+		reAttr.addFlashAttribute("err_msg", req.getAttribute("err_msg"));
+		if (req.getAttribute("err_msg") != null) {
+			return "redirect:"+ req.getAttribute("failUrl").toString();
+		}
 		return "redirect:/member/login";
 	}
 	
@@ -124,6 +135,7 @@ public class MemberController {
 	 * 
 	 * }
 	 */
+	
 	
 	@PostMapping("/join")
 	public String join(MemberVO mvo, RedirectAttributes reAttr) {

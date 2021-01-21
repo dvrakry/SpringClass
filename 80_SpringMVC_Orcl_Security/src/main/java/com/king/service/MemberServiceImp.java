@@ -59,5 +59,25 @@ public class MemberServiceImp implements MemberService{
 		return mdao.selectTotal(pg);
 	}
 
+	@Override
+	public int upFailCount(String email) {
+		return mdao.updateFC(email);
+	}
+
+	@Override
+	public int getFC(String email) {
+		return mdao.selectFC(email);
+	}
+
+	@Override
+	public int lockEmail(String email) {
+		return mdao.updateLock(email);
+	}
+
+	@Override
+	public int resetFC(String email) {
+		return mdao.updateReset(email);
+	}
+
 
 }

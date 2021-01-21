@@ -21,8 +21,8 @@
  from tbl_member where email=#{email}
 </sql>
 	<insert id="join" parameterType="mvo">
-		insert into tbl_member
-		values (#{email}, #{pwd}, #{nickname}, sysdate)
+		insert into tbl_member (email, pwd, nickname)
+		values (#{email}, #{pwd}, #{nickname})
 	</insert>
 	<select id="login" parameterType="mvo" resultType="mvo">
 		select * <include refid="base"/> and pwd=#{pwd}
@@ -51,8 +51,20 @@
 		]]>
 		<include refid="search"/>	
 	</select>
+	<select id="fc" parameterType="java.lang.String" resultType="java.lang.Integer">
+		select failcnt from tbl_member where email = #{email}
+	</select>
 	<update id="mod" parameterType="mvo">
 		update tbl_member set nickname=#{nickname} where email=#{email}
+	</update>
+	<update id="upfc" parameterType="java.lang.String">
+		update tbl_member set failcnt = failcnt+1 where email=#{email}
+	</update>
+	<update id="lock" parameterType="java.lang.String">
+		update tbl_member set enabled = 0 where email=#{email}
+	</update>
+	<update id="reset" parameterType="java.lang.String">
+		update tbl_member set failcnt = 0 where email=#{email}
 	</update>
 	<delete id="resign" parameterType="java.lang.String">
 		delete <include refid="base" />

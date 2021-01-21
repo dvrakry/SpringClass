@@ -4,6 +4,8 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +33,7 @@ public class ProductController {
 	@Inject
 	private FileProcessor fp;
 	
+	@PreAuthorize("isAuthenticated()")
 	@PostMapping("/remove")
 	public String remove(@RequestParam("pno")int pno, RedirectAttributes reAttr, Paging pg ) {
 		fp.deleteOldFiles(pno);//포린키가 pno를 잡고있기때문에 file부터 지워야됨, pno부터 지우면 안지워짐 포린키때문에
@@ -40,6 +43,7 @@ public class ProductController {
 		return "redirect:/product/list?pageIdx="+pg.getPageIdx()+"&qty=" + pg.getQty();
 	}
 	
+	@PreAuthorize("isAuthenticated()")
 	@PostMapping("/modify")
 	public String modify(ProductVO pvo, RedirectAttributes reAttr,
 			@RequestParam(name="files", required = false)MultipartFile[] files,
@@ -69,6 +73,8 @@ public class ProductController {
 		model.addAttribute("pgbld", new PagingBuilder(totalCount,pg));
 	}
 	
+	/* @Secured({"MEM","ADM"}) */
+	@PreAuthorize("isAuthenticated()")
 	@PostMapping("/register")
 	public String register(ProductVO pvo, RedirectAttributes reAttr,
 			@RequestParam(name="files", required = false)MultipartFile[] files) {
@@ -86,6 +92,7 @@ public class ProductController {
 		return "redirect:/product/list"; //리다이렉트로 불러서 주소값이 바뀌기 때문에 새로고침해도 다시 등록이 안되는거
 	}
 	
+	@PreAuthorize("isAuthenticated()")
 	@GetMapping("/register")
 	public void register() {}
 	

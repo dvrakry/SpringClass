@@ -95,11 +95,140 @@ class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
 		return mvo;
 	}
 	
-10.
+10. /nav.jsp 수정> 참조 , MemberController 로그아웃(getmapping) 주석처리
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
+<sec:authorize access="isAuthenticated()">
+<sec:authorize access="isAuthenticated()"> <!-- 세션 로그인 성공한 사람만 isAuthenticated() 여기서 true false 값을 리턴함 /인증 이프문느낌-->
+		<ul class="nav justify-content-center">
+		
+			<li class="nav-item">
+				<a class="nav-link" href="/product/list">상품리스트</a>
+			</li>		
+				
+			<li class="nav-item">
+				<sec:authentication property="principal.auth" var="auth"/> <!-- 벨류값을 불러오는 느낌/ principal.auth 여기서 principal은 현재 접속자 유저의 VO객체 -->
+				<c:if test="${auth eq 'ADM' }">
+						<a class="nav-link" href="/member/list"><sec:authentication property="principal.nickname"/>
+						 (<sec:authentication property="principal.email"/>)</a>
+				</c:if>
+				<c:if test="${auth eq 'MEM' }">
+						<a class="nav-link" href='/member/modify?em=<sec:authentication property="principal.email"/>'>
+						<sec:authentication property="principal.nickname"/>
+						 (<sec:authentication property="principal.email"/>)</a>
+				</c:if>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href='<c:url value="/member/logout"/>' id="logout">로그아웃</a>
+			</li>
+		</ul>
+		<form action='<c:url value="/member/logout"/>' id="logoutForm" method="post">
+			<input type="hidden" name="${_csrf.parameterName }" value="${_csrf.token }"> <!-- 포스트로 보내서 시큐리티가 작동하게함 -->
+		</form>
+		<script>
+			$(function() {
+				$("#logout").on("click", function(e) {
+					e.preventDefault();//a링크니깐 이동안하게 막기
+					$("#logoutForm").submit();
+				});
+			});
+		</script>
+</sec:authorize>
+<sec:authorize access="isAnonymous()"> <!-- 세션없는 아무나 -->
+
+11.security-context에 logout 설정
+<security:logout logout-url="/member/logout" invalidate-session="true"
+	logout-success-url="/"/>
+	
+12.
+<security:form-login
+authentication-failure-handler-ref="loginFailureHandler"
+
+<beans:bean id="loginFailureHandler" class="com.king.security.LoginFailureHandler">
+	<beans:property name="authEmail" value="email"/> <!-- 로그인.jsp의 정보를 주고 받는 통로 프로퍼티를 맞춰줘야됨, 핸들러가 authEmail을 주고 여기 email을 login.jsp로줌 -->
+	<beans:property name="authPwd" value="pwd"/>
+	<beans:property name="errMsg" value="err_msg"/>
+	<beans:property name="failUrl" value="/member/login?error"/>
+</beans:bean>
+
+13.
+public class LoginFailureHandler implements AuthenticationFailureHandler {
+
+14.
+private void loginFailCountUp(String email) {
+		msv.upFailCount(email);
+		int fc = msv.getFC(email);
+		if(fc >= 5) {
+			msv.lockEmail(email);
+		}
+	}
+
+15. service , dao, mapper 수정 및 추가
+
+16. 컨트롤러 수정
+@PostMapping("/login") //AuthMemberDetailsService/  끝나고 일로옴
+	public String login(RedirectAttributes reAttr, HttpServletRequest req) { //authMemberDetailService 끝내고 일로옴
+		reAttr.addFlashAttribute("email", req.getAttribute("email"));
+		reAttr.addFlashAttribute("err_msg", req.getAttribute("err_msg"));
+		if (req.getAttribute("err_msg") != null) {
+			return "redirect:"+ req.getAttribute("failUrl").toString();
+		}
+		return "redirect:/member/login";
+	}
 
 
+17.security-context
+authentication-success-handler-ref="loginSuccessHandler"/>
+<beans:bean id="loginSuccessHandler" class="com.king.security.LoginSuccessHandler">
+	<beans:property name="authEmail" value="email"/>
+	<beans:property name="authUrl" value="/"/>
+</beans:bean>
+
+18.public class LoginSuccessHandler implements AuthenticationSuccessHandler {
+
+msv.resetFC(email); >> 서비스 다오 맵퍼 수정 및 추가
+HttpSession ses = request.getSession(false);//기존의 세션값을 사용하겠다는 뜻
+		if(ses == null) {
+			return;
+		}else {
+			ses.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION); //세션 로그인시 발생한 에러 삭제
+			
+		}
+		SavedRequest savedReq = reqCache.getRequest(request, response);
+		if (savedReq != null) {
+			//어느 서비스를 이용하기 위해서 리퀘스트 요청이 있었어! ex)/product/register
+			String destPage = savedReq.getRedirectUrl();//기존 url값을 저장해서 뽑아내서 스트링이 된것
+			reStg.sendRedirect(request, response, destPage);
+		} else {
+			//여긴 직접 로그인
+			reStg.sendRedirect(request, response, authUrl);
+		}
 
 
+19. 각 컨트롤러의 메서드 접근 설정
+@PreAuthorize("isAuthenticated()")
+@GetMapping("/register")
+/* @Secured("ADM"), @PreAuthorize("hasRole('ADM')") */ 이것도 가능
+
+#두개이상의 권한 허용
+@Secured({"ADM","MEM"}) or  @PreAuthorize("hasAnyRole('ADM','MEM')"
+
+20. 모든 jsp에 form 태그 > post 전송은 
+<input type="hidden" name="${_csrf.parameterName }" value="${_csrf.token }"> 추가
+
+21. common/header.jsp
+<meta name="_csrf_header" content="${_csrf.headerName }">
+<meta name="_csrf" content="${_csrf.token }">
+
+22. 모든 ajax post, put, patch, delete 전송은
+let header = $("meta[name='_csrf_header']").attr("content");
+let token = $("meta[name='_csrf']").attr("content");
+
+ - ajax 메서드 내부 추가
+beforeSend: function(xhr) {
+            xhr.setRequestHeader(header, token);
+         }   
+
+23. remember -me part
 
 
 

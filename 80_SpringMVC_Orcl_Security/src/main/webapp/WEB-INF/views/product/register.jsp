@@ -6,8 +6,7 @@
 #files{display: none;}
 </style>
 <jsp:include page="../common/nav.jsp"></jsp:include>
-<c:choose>
-<c:when test="${ses.email ne '' && ses.email ne null}">
+
 <div class="row">
 	<div class="col-md-12 order-md-1">
 		<h4 class="mb-3">상품 등록</h4>
@@ -90,9 +89,4 @@ $(function() {
 });
 
 </script>
-</c:when>
-<c:otherwise>
-	<h1>권한이 필요한 페이지입니다!</h1>
-</c:otherwise>
-</c:choose>
 <jsp:include page="../common/footer.jsp"></jsp:include>

@@ -14,4 +14,8 @@ public interface MemberDAO {
 	public int update(MemberVO mvo);
 	public int delete(String email);
 	public int selectTotal(Paging pg);
+	public int updateFC(String email);
+	public int selectFC(String email);
+	public int updateLock(String email);
+	public int updateReset(String email);
 }

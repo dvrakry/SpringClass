@@ -6,9 +6,9 @@
 <jsp:include page="../common/nav.jsp"></jsp:include>
 
 <div class="input-group mb-3">
-	<c:if test="${ses.email != null }">
-		<a href="/product/register" class="btn btn-sm btn-outline-primary">상품등록</a>
-	</c:if>
+
+	<a href="/product/register" class="btn btn-sm btn-outline-primary">상품등록</a>
+		
 	<form action="/product/list" class="form-inline">
 	<div class="input-group-prepend">
 		<select class="form-control" name="range">

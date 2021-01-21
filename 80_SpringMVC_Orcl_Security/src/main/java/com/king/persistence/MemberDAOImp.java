@@ -60,4 +60,24 @@ public class MemberDAOImp implements MemberDAO {
 	public int selectTotal(Paging pg) {
 		return sql.selectOne(NS+"tt" , pg);
 	}
+
+	@Override
+	public int updateFC(String email) {
+		return sql.update(NS+"upfc", email);
+	}
+
+	@Override
+	public int selectFC(String email) {
+		return sql.selectOne(NS+"fc", email);
+	}
+
+	@Override
+	public int updateLock(String email) {
+		return sql.update(NS+"lock", email);
+	}
+
+	@Override
+	public int updateReset(String email) {
+		return sql.update(NS+"reset", email);
+	}
 }

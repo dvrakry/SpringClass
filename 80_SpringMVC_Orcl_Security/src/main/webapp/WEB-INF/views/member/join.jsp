@@ -6,6 +6,7 @@
 <jsp:include page="../common/nav.jsp"></jsp:include>
 
 <form method="post">
+<input type="hidden" name="${_csrf.parameterName }" value="${_csrf.token }">
   <div class="form-group">
     <label for="email">Email address:</label>
     <input type="email" class="form-control" placeholder="Enter email" id="email" name="email">
@@ -31,10 +32,15 @@ $(function() {
 	$("#check").on("click",function(e){
 		//e.preventDefault();
 		let emailVal = $("#email").val();
+		let header = $("meta[name='_csrf_header']").attr("content");
+		let token = $("meta[name='_csrf']").attr("content");
 		$.ajax({
 			url: "/member/check",
 			type: "post",
 			data: {email: emailVal},
+			beforeSend: function(xhr){
+				xhr.setRequestHeader(header, token);
+			}
 			
 		}).done(function(result) {
 			console.log(result);

@@ -14,5 +14,9 @@ public interface MemberService {
 	public int modify(MemberVO mvo);
 	public int resign(String email);
 	public int getTotal(Paging pg);
+	public int upFailCount(String email);//int나 void나 상관 없음
+	public int getFC(String email);
+	public int lockEmail(String email);//int나 void나 상관 없음
+	public int resetFC(String email);
 	
 }

@@ -19,9 +19,14 @@ class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
 	</security:session-management>
 	<security:form-login username-parameter="email" password-parameter="pwd"
 	login-processing-url="/member/login" login-page="/member/login" default-target-url="/"
-	authentication-failure-handler-ref=""
-	authentication-success-handler-ref=""/> <!-- 로그인할때 쓰는 폼태그 네임값이 파라미터임 -->
+	authentication-failure-handler-ref="loginFailureHandler"
+	authentication-success-handler-ref="loginSuccessHandler"/><!-- 로그인할때 쓰는 폼태그 네임값이 파라미터임 -->
 	<!-- login-processing-url="/member/login"==>포스트맵핑 login-page="/member/login"==>갯맵핑 -->
+	
+	<security:remember-me data-source-ref="dataSource" token-validity-seconds="3600"/> 
+	<security:logout logout-url="/member/logout" invalidate-session="true"
+	logout-success-url="/" delete-cookies="remember-me,JSESSION_ID"/>
+	
 </security:http>
 <security:authentication-manager> <!-- login-processing-url="/member/login" 이게돌고나서 이게돔 -->
 	<security:authentication-provider user-service-ref="authMemberDetailsService"> <!-- 실제인증을 진행할 서비스 객체 -->
@@ -29,4 +34,17 @@ class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
 	</security:authentication-provider>
 </security:authentication-manager>
 <beans:bean id="authMemberDetailsService" class="com.king.service.AuthMemberDetailsService"/> <!-- 실제인증을 진행할 서비스 객체 -->
+
+<beans:bean id="loginFailureHandler" class="com.king.security.LoginFailureHandler">
+	<beans:property name="authEmail" value="email"/> <!-- 로그인.jsp의 정보를 주고 받는 통로 프로퍼티를 맞춰줘야됨, 핸들러가 authEmail을 주고 여기 email을 login.jsp로줌 -->
+	<beans:property name="authPwd" value="pwd"/>
+	<beans:property name="errMsg" value="err_msg"/>
+	<beans:property name="failUrl" value="/member/login?error"/>
+</beans:bean>
+
+<beans:bean id="loginSuccessHandler" class="com.king.security.LoginSuccessHandler">
+	<beans:property name="authEmail" value="email"/>
+	<beans:property name="authUrl" value="/"/>
+</beans:bean>
+
 </beans:beans>
